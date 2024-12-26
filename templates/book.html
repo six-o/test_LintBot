@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>麵包預約</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
+        <link
+            rel="stylesheet"
+            href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        />
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    </head>
+    <body>
+        <div class="row" style="margin: 10px">
+            <div class="col-12" style="margin: 10px">
+                <label>麵包預訂</label>
+                <select id="sel_type" class="form-control">
+                    <option selected>黑芝麻乳酪麵包</option>
+                    <option>蛋糕吐司</option>
+                    <option>奶皇芋頭麻吉爆漿吐司</option>
+                    <option>肉鬆沙拉麵包</option>
+                    <option>香蔥麵包</option>
+                    <option>葡式蛋塔</option>
+                    <option>牛奶蔓越莓軟歐</option>
+                    <option>蔓越莓奶酥吐司</option>
+                    <option>葡萄吐司</option>
+                    <option>檸檬蛋糕</option>
+                </select>
+                <br />
+                <label>麵包數量</label>
+                <input type="number" id="txb_amount" class="form-control" />
+                <br />
+                <label>取貨日期</label>
+                <input
+                    type="date"
+                    id="in_datetime"
+                    value=""
+                    class="form-control"
+                    min=""
+                />
+                <br />
+                <button class="btn btn-success btn-block" id="btn_reserve">
+                    確定
+                </button>
+            </div>
+        </div>
+        <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+        <script>
+            function initializeLiff() {
+                liff.init({ liffId: "2006706294-ng4Jr96g" });
+            }
+
+            function reserve(type, amount, in_datetime) {
+                if (amount == "" || type == "" || in_datetime == "") {
+                    //資料檢查
+                    alert("所有欄位都要填寫！");
+                    return;
+                }
+                if (amount <= 0) {
+                    alert("不可小於0");
+                    return;
+                }
+
+                var msg = "麵包種類：" + type + "\n"; //回傳訊息字串
+                msg += "數量：" + amount + "\n";
+                msg += "日期：" + in_datetime;
+                liff.sendMessages([
+                    //推播訊息
+                    { type: "text", text: msg },
+                ]).then(() => {
+                    liff.closeWindow(); //關閉視窗
+                });
+            }
+            document.addEventListener("DOMContentLoaded", () => {
+                const dateInput = document.getElementById("date");
+                const today = new Date().toISOString().split("T")[0]; // 格式化為 YYYY-MM-DD
+                dateInput.min = today;
+
+                $("#btn_reserve").click(function (e) {
+                    //按下確定鈕
+                    const selectedDate = new Date(dateInput.value);
+                    const currentDate = new Date(today);
+
+                    if (selectedDate < currentDate) {
+                        alert("選擇的日期不能小於今天！");
+                        event.preventDefault(); // 阻止表單提交
+                    }
+                });
+                
+                // document.getElementById("dateForm").addEventListener("submit", (event) => {
+                    
+                // });
+            });
+            
+
+            $(document).ready(function () {
+                initializeLiff();
+                $("#btn_reserve").click(function (e) {
+                    //按下確定鈕
+                    reserve(
+                        $("#sel_type").val(),
+                        $("#txb_amount").val(),
+                        $("#in_datetime").val()
+                    );
+                });
+            });
+        </script>
+    </body>
+</html>

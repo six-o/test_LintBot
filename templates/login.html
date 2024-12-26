@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>登入</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
+        <link
+            rel="stylesheet"
+            href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        />
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    </head>
+    <body>
+        <div class="row" style="margin: 10px">
+            <div class="col-12" style="margin: 10px">
+                <label>帳號</label>
+                <input type="text" id="username" class="username" required />
+                <br />
+                <label>密碼</label>
+                <input
+                    type="password"
+                    id="password"
+                    class="password"
+                    required
+                />
+                <br />
+                <button class="btn btn-success btn-block" id="btn_reserve">
+                    確定
+                </button>
+            </div>
+        </div>
+        <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+        <script>
+            // 初始化 LIFF
+            async function initializeLiff() {
+                try {
+                    await liff.init({ liffId: "2006706294-1Lo6DR8v" });
+                    console.log("LIFF 初始化成功！");
+                } catch (error) {
+                    console.error("LIFF 初始化失敗:", error);
+                    alert("LIFF 初始化失敗，請稍後再試！");
+                }
+            }
+        
+            // 推播與登入檢查
+            async function reserve(username, password) {
+                if (!username || !password) {
+                    alert("所有欄位都要填寫！");
+                    return;
+                }
+        
+                // 初始化訊息
+                let msg = `帳號：${username}\n密碼：${password}`;
+        
+                try {
+                    // 傳送帳號與密碼至伺服器進行驗證
+                    const response = await fetch("/login", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ username, password }),
+                    });
+        
+                    const result = await response.json();
+        
+                    // 根據伺服器回應決定推播訊息
+                    if (result.status === "success") {
+                        const userName = result.name || "用戶";
+                        msg = `${userName} 歡迎您！`;
+                    } else {
+                        msg = `登入失敗：${result.message}`;
+                    }
+        
+                    // 推播訊息
+                    await liff.sendMessages([{ type: "text", text: msg }]);
+                    liff.closeWindow(); // 關閉 LIFF 視窗
+                } catch (error) {
+                    console.error("發生錯誤:", error);
+                    alert("推播或登入驗證失敗，請稍後再試！");
+                }
+            }
+        
+            // 綁定事件
+            $(document).ready(function () {
+                initializeLiff();
+                $("#btn_reserve").click(function () {
+                    const username = $("#username").val();
+                    const password = $("#password").val();
+                    reserve(username, password);
+                });
+            });
+        </script>
+        
+    </body>
+</html>
